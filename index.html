@@ -33,7 +33,7 @@
       margin: 5px 0;
     }
     .dropzone {
-      min-width: 80px;
+      min-width: 100px;
       min-height: 40px;
       border: 2px dashed #aaa;
       display: inline-block;
@@ -41,6 +41,7 @@
       margin-top: 5px;
       text-align: center;
       font-size: 2rem;
+      font-weight: bold;
     }
     .options {
       margin-top: 20px;
@@ -58,6 +59,7 @@
     .option:nth-child(2n) { background-color: #d4edda; }
     .option:nth-child(3n) { background-color: #fff3cd; }
     .option:nth-child(4n) { background-color: #f8d7da; }
+    .option:nth-child(5n) { background-color: #e0bbff; }
     .hidden { display: none; }
     #nextBtn {
       margin-top: 20px;
@@ -90,7 +92,7 @@
       {a: "9", op: "+", b: "6", result: "15"},
       {a: "12", op: "-", b: "8", result: "4"},
       {a: "15", op: "+", b: "7", result: "22"},
-      // Decimales (nuevos)
+      // Decimales
       {a: "2,35", op: "+", b: "1,412", result: "3,762"},
       {a: "5,728", op: "-", b: "2,416", result: "3,312"},
       {a: "3,506", op: "+", b: "4,289", result: "7,795"},
@@ -122,10 +124,23 @@
       const optionsDiv = document.getElementById("optionsContainer");
       optionsDiv.innerHTML = "";
       let answers = [ex.result];
-      while (answers.length < 4) {
-        let fake = (Math.random() * 20).toFixed(3).replace(".", ",");
-        if (!answers.includes(fake)) answers.push(fake);
+
+      if (index < 5) {
+        // primeros 5 → números naturales entre 1 y 100
+        while (answers.length < 5) {
+          let fake = Math.floor(Math.random() * 100) + 1;
+          if (!answers.includes(fake.toString())) answers.push(fake.toString());
+        }
+      } else {
+        // decimales → distractores cercanos
+        let correct = parseFloat(ex.result.replace(",", "."));
+        while (answers.length < 5) {
+          let variation = (Math.random() * 2 - 1).toFixed(3); // entre -1 y +1
+          let fake = (correct + parseFloat(variation)).toFixed(3).replace(".", ",");
+          if (!answers.includes(fake)) answers.push(fake);
+        }
       }
+
       answers = answers.sort(() => Math.random() - 0.5);
       answers.forEach(ans => {
         const span = document.createElement("span");
@@ -135,20 +150,19 @@
         span.addEventListener("dragstart", drag);
         optionsDiv.appendChild(span);
       });
+
       document.getElementById("message").textContent = "";
       document.getElementById("nextBtn").classList.add("hidden");
+
       // drop
       const dropzone = document.getElementById("dropzone");
       dropzone.addEventListener("dragover", allowDrop);
       dropzone.addEventListener("drop", drop);
     }
 
-    function allowDrop(ev) {
-      ev.preventDefault();
-    }
-    function drag(ev) {
-      ev.dataTransfer.setData("text", ev.target.textContent);
-    }
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { ev.dataTransfer.setData("text", ev.target.textContent); }
+
     function drop(ev) {
       ev.preventDefault();
       const data = ev.dataTransfer.getData("text");
@@ -161,6 +175,7 @@
         document.getElementById("message").textContent = "Intenta otra vez 😉";
       }
     }
+
     document.getElementById("nextBtn").addEventListener("click", () => {
       current++;
       if (current < exercises.length) {
