@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejercicios de Matemáticas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fdfdfd;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    .exercise {
+      font-size: 2rem;
+      margin: 30px auto;
+      width: fit-content;
+      border: 2px solid #ccc;
+      padding: 20px;
+      border-radius: 15px;
+      background-color: #fff8dc;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+    .vertical {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-family: monospace;
+    }
+    .line {
+      border-top: 2px solid black;
+      width: 100%;
+      margin: 5px 0;
+    }
+    .dropzone {
+      min-width: 80px;
+      min-height: 40px;
+      border: 2px dashed #aaa;
+      display: inline-block;
+      vertical-align: middle;
+      margin-top: 5px;
+      text-align: center;
+      font-size: 2rem;
+    }
+    .options {
+      margin-top: 20px;
+    }
+    .option {
+      display: inline-block;
+      padding: 10px 15px;
+      margin: 8px;
+      border-radius: 10px;
+      background-color: #cce5ff;
+      cursor: grab;
+      font-size: 1.5rem;
+      user-select: none;
+    }
+    .option:nth-child(2n) { background-color: #d4edda; }
+    .option:nth-child(3n) { background-color: #fff3cd; }
+    .option:nth-child(4n) { background-color: #f8d7da; }
+    .hidden { display: none; }
+    #nextBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #message {
+      font-size: 1.3rem;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ejercicios de Sumas y Restas</h1>
+  <div id="exerciseContainer"></div>
+  <div id="optionsContainer" class="options"></div>
+  <div id="message"></div>
+  <button id="nextBtn" class="hidden">Siguiente</button>
+
+  <script>
+    const exercises = [
+      // Enteros
+      {a: "2", op: "+", b: "3", result: "5"},
+      {a: "7", op: "-", b: "4", result: "3"},
+      {a: "9", op: "+", b: "6", result: "15"},
+      {a: "12", op: "-", b: "8", result: "4"},
+      {a: "15", op: "+", b: "7", result: "22"},
+      // Decimales (nuevos)
+      {a: "2,35", op: "+", b: "1,412", result: "3,762"},
+      {a: "5,728", op: "-", b: "2,416", result: "3,312"},
+      {a: "3,506", op: "+", b: "4,289", result: "7,795"},
+      {a: "8,905", op: "-", b: "3,427", result: "5,478"},
+      {a: "7,324", op: "+", b: "2,678", result: "10,002"},
+      {a: "9,781", op: "-", b: "4,562", result: "5,219"},
+      {a: "6,432", op: "+", b: "1,569", result: "8,001"},
+      {a: "12,308", op: "-", b: "7,295", result: "5,013"},
+      {a: "4,751", op: "+", b: "3,249", result: "8,000"},
+      {a: "15,678", op: "-", b: "9,432", result: "6,246"}
+    ];
+
+    let current = 0;
+
+    function showExercise(index) {
+      const ex = exercises[index];
+      const container = document.getElementById("exerciseContainer");
+      container.innerHTML = `
+        <div class="exercise">
+          <div class="vertical">
+            <div>${ex.a}</div>
+            <div>${ex.op} ${ex.b}</div>
+            <div class="line"></div>
+            <div class="dropzone" id="dropzone"></div>
+          </div>
+        </div>
+      `;
+      // opciones
+      const optionsDiv = document.getElementById("optionsContainer");
+      optionsDiv.innerHTML = "";
+      let answers = [ex.result];
+      while (answers.length < 4) {
+        let fake = (Math.random() * 20).toFixed(3).replace(".", ",");
+        if (!answers.includes(fake)) answers.push(fake);
+      }
+      answers = answers.sort(() => Math.random() - 0.5);
+      answers.forEach(ans => {
+        const span = document.createElement("span");
+        span.textContent = ans;
+        span.className = "option";
+        span.setAttribute("draggable", true);
+        span.addEventListener("dragstart", drag);
+        optionsDiv.appendChild(span);
+      });
+      document.getElementById("message").textContent = "";
+      document.getElementById("nextBtn").classList.add("hidden");
+      // drop
+      const dropzone = document.getElementById("dropzone");
+      dropzone.addEventListener("dragover", allowDrop);
+      dropzone.addEventListener("drop", drop);
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.textContent);
+    }
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const ex = exercises[current];
+      if (data === ex.result) {
+        ev.target.textContent = data;
+        document.getElementById("message").textContent = "¡Correcto! 🎉";
+        document.getElementById("nextBtn").classList.remove("hidden");
+      } else {
+        document.getElementById("message").textContent = "Intenta otra vez 😉";
+      }
+    }
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      current++;
+      if (current < exercises.length) {
+        showExercise(current);
+      } else {
+        document.getElementById("exerciseContainer").innerHTML = "<h2>¡Completaste todos los ejercicios! 🏆</h2>";
+        document.getElementById("optionsContainer").innerHTML = "";
+        document.getElementById("nextBtn").classList.add("hidden");
+      }
+    });
+
+    showExercise(current);
+  </script>
+</body>
+</html>
