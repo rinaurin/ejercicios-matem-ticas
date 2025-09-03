@@ -6,11 +6,12 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #fdfdfd;
+      background-color: #fefefe;
       color: #333;
       text-align: center;
       padding: 20px;
     }
+    h1 { color: #0066cc; }
     .exercise {
       font-size: 2rem;
       margin: 30px auto;
@@ -32,77 +33,54 @@
       width: 100%;
       margin: 5px 0;
     }
-    .dropzone {
-      min-width: 100px;
-      min-height: 40px;
-      border: 2px dashed #aaa;
-      display: inline-block;
-      vertical-align: middle;
-      margin-top: 5px;
-      text-align: center;
-      font-size: 2rem;
-      font-weight: bold;
-    }
-    .options {
-      margin-top: 20px;
-    }
-    .option {
-      display: inline-block;
-      padding: 10px 15px;
-      margin: 8px;
+    canvas {
+      border: 2px solid #333;
+      margin-top: 15px;
+      background: #fff;
       border-radius: 10px;
-      background-color: #cce5ff;
-      cursor: grab;
-      font-size: 1.5rem;
-      user-select: none;
     }
-    .option:nth-child(2n) { background-color: #d4edda; }
-    .option:nth-child(3n) { background-color: #fff3cd; }
-    .option:nth-child(4n) { background-color: #f8d7da; }
-    .option:nth-child(5n) { background-color: #e0bbff; }
-    .hidden { display: none; }
-    #nextBtn {
-      margin-top: 20px;
+    #controls {
+      margin-top: 15px;
+    }
+    button {
       padding: 10px 20px;
-      font-size: 1.2rem;
+      margin: 10px;
+      font-size: 1.1rem;
       border: none;
-      background-color: #4caf50;
-      color: white;
       border-radius: 8px;
       cursor: pointer;
     }
-    #message {
-      font-size: 1.3rem;
-      margin-top: 15px;
-    }
+    #clearBtn { background-color: #ff6666; color: white; }
+    #nextBtn { background-color: #4caf50; color: white; }
   </style>
 </head>
 <body>
-  <h1>Ejercicios de Sumas y Restas</h1>
+  <h1>Resuelve y Dibuja la Respuesta</h1>
   <div id="exerciseContainer"></div>
-  <div id="optionsContainer" class="options"></div>
-  <div id="message"></div>
-  <button id="nextBtn" class="hidden">Siguiente</button>
-
+  <canvas id="canvas" width="300" height="120"></canvas>
+  <div id="controls">
+    <button id="clearBtn">Borrar</button>
+    <button id="nextBtn">Siguiente</button>
+  </div>
   <script>
     const exercises = [
       // Enteros
-      {a: "2", op: "+", b: "3", result: "5"},
-      {a: "7", op: "-", b: "4", result: "3"},
-      {a: "9", op: "+", b: "6", result: "15"},
-      {a: "12", op: "-", b: "8", result: "4"},
-      {a: "15", op: "+", b: "7", result: "22"},
+      {a: "2", op: "+", b: "3"},
+      {a: "7", op: "-", b: "4"},
+      {a: "9", op: "+", b: "6"},
+      {a: "12", op: "-", b: "8"},
+      {a: "15", op: "+", b: "7"},
       // Decimales
-      {a: "2,35", op: "+", b: "1,412", result: "3,762"},
-      {a: "5,728", op: "-", b: "2,416", result: "3,312"},
-      {a: "3,506", op: "+", b: "4,289", result: "7,795"},
-      {a: "8,905", op: "-", b: "3,427", result: "5,478"},
-      {a: "7,324", op: "+", b: "2,678", result: "10,002"},
-      {a: "9,781", op: "-", b: "4,562", result: "5,219"},
-      {a: "6,432", op: "+", b: "1,569", result: "8,001"},
-      {a: "12,308", op: "-", b: "7,295", result: "5,013"},
-      {a: "4,751", op: "+", b: "3,249", result: "8,000"},
-      {a: "15,678", op: "-", b: "9,432", result: "6,246"}
+      {a: "2,35", op: "+", b: "1,412"},
+      {a: "5,728", op: "-", b: "2,416"},
+      {a: "3,506", op: "+", b: "4,289"},
+      {a: "8,905", op: "-", b: "3,427"},
+      {a: "7,324", op: "+", b: "2,678"},
+      {a: "9,781", op: "-", b: "4,562"},
+      {a: "6,432", op: "+", b: "1,569"},
+      {a: "12,308", op: "-", b: "7,295"},
+      {a: "4,751", op: "+", b: "3,249"},
+      {a: "15,678", op: "-", b: "9,432"}
     ];
 
     let current = 0;
@@ -116,77 +94,79 @@
             <div>${ex.a}</div>
             <div>${ex.op} ${ex.b}</div>
             <div class="line"></div>
-            <div class="dropzone" id="dropzone"></div>
           </div>
         </div>
       `;
-      // opciones
-      const optionsDiv = document.getElementById("optionsContainer");
-      optionsDiv.innerHTML = "";
-      let answers = [ex.result];
-
-      if (index < 5) {
-        // primeros 5 → números naturales entre 1 y 100
-        while (answers.length < 5) {
-          let fake = Math.floor(Math.random() * 100) + 1;
-          if (!answers.includes(fake.toString())) answers.push(fake.toString());
-        }
-      } else {
-        // decimales → distractores cercanos
-        let correct = parseFloat(ex.result.replace(",", "."));
-        while (answers.length < 5) {
-          let variation = (Math.random() * 2 - 1).toFixed(3); // entre -1 y +1
-          let fake = (correct + parseFloat(variation)).toFixed(3).replace(".", ",");
-          if (!answers.includes(fake)) answers.push(fake);
-        }
-      }
-
-      answers = answers.sort(() => Math.random() - 0.5);
-      answers.forEach(ans => {
-        const span = document.createElement("span");
-        span.textContent = ans;
-        span.className = "option";
-        span.setAttribute("draggable", true);
-        span.addEventListener("dragstart", drag);
-        optionsDiv.appendChild(span);
-      });
-
-      document.getElementById("message").textContent = "";
-      document.getElementById("nextBtn").classList.add("hidden");
-
-      // drop
-      const dropzone = document.getElementById("dropzone");
-      dropzone.addEventListener("dragover", allowDrop);
-      dropzone.addEventListener("drop", drop);
     }
 
-    function allowDrop(ev) { ev.preventDefault(); }
-    function drag(ev) { ev.dataTransfer.setData("text", ev.target.textContent); }
+    // canvas dibujo
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
 
-    function drop(ev) {
-      ev.preventDefault();
-      const data = ev.dataTransfer.getData("text");
-      const ex = exercises[current];
-      if (data === ex.result) {
-        ev.target.textContent = data;
-        document.getElementById("message").textContent = "¡Correcto! 🎉";
-        document.getElementById("nextBtn").classList.remove("hidden");
-      } else {
-        document.getElementById("message").textContent = "Intenta otra vez 😉";
-      }
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mouseup", stopDraw);
+    canvas.addEventListener("mousemove", draw);
+
+    canvas.addEventListener("touchstart", startDrawTouch);
+    canvas.addEventListener("touchend", stopDraw);
+    canvas.addEventListener("touchmove", drawTouch);
+
+    function startDraw(e) {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
     }
+
+    function stopDraw() {
+      drawing = false;
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#000";
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+    }
+
+    function startDrawTouch(e) {
+      drawing = true;
+      ctx.beginPath();
+      const rect = canvas.getBoundingClientRect();
+      ctx.moveTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+    }
+
+    function drawTouch(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#000";
+      ctx.lineTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+      ctx.stroke();
+    }
+
+    // botones
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
 
     document.getElementById("nextBtn").addEventListener("click", () => {
       current++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (current < exercises.length) {
         showExercise(current);
       } else {
-        document.getElementById("exerciseContainer").innerHTML = "<h2>¡Completaste todos los ejercicios! 🏆</h2>";
-        document.getElementById("optionsContainer").innerHTML = "";
-        document.getElementById("nextBtn").classList.add("hidden");
+        document.getElementById("exerciseContainer").innerHTML = "<h2>¡Terminaste todos los ejercicios! 🎉</h2>";
+        document.getElementById("canvas").style.display = "none";
+        document.getElementById("controls").style.display = "none";
       }
     });
 
+    // inicio
     showExercise(current);
   </script>
 </body>
