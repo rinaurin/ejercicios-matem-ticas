@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ejercicios de Matemáticas</title>
+<style>
+  body {
+    font-family: "Comic Sans MS", sans-serif;
+    background: linear-gradient(135deg, #fef6f9, #e0f7fa);
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 {
+    color: #444;
+  }
+  .card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 400px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  }
+  .operation {
+    font-size: 2rem;
+    text-align: right;
+    margin-bottom: 10px;
+    font-family: "Courier New", monospace;
+  }
+  .line {
+    border-top: 3px solid #333;
+    margin: 5px 0;
+  }
+  .dropzone {
+    border: 2px dashed #999;
+    border-radius: 10px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-top: 10px;
+    background: #fafafa;
+  }
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .option {
+    background: #a8dadc;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: grab;
+    font-size: 1.2rem;
+  }
+  .option:active {
+    cursor: grabbing;
+  }
+  #feedback {
+    font-weight: bold;
+    margin-top: 15px;
+    min-height: 25px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Ejercicios de Matemáticas</h1>
+
+<div class="card">
+  <div id="exerciseBox"></div>
+  <div class="dropzone" id="dropzone">Arrastra aquí la respuesta</div>
+  <div class="options" id="options"></div>
+  <div id="feedback"></div>
+</div>
+
+<script>
+const exercises = [
+  {a:"2", op:"+", b:"3", ans:"5"},
+  {a:"7", op:"-", b:"4", ans:"3"},
+  {a:"9", op:"+", b:"6", ans:"15"},
+  {a:"12", op:"-", b:"8", ans:"4"},
+  {a:"15", op:"+", b:"7", ans:"22"},
+  {a:"5,728", op:"-", b:"2,416", ans:"3,312"},
+  {a:"3,506", op:"+", b:"4,289", ans:"7,795"},
+  {a:"8,905", op:"-", b:"3,427", ans:"5,478"},
+  {a:"7,324", op:"+", b:"2,678", ans:"10,002"},
+  {a:"9,781", op:"-", b:"4,562", ans:"5,219"},
+  {a:"6,432", op:"+", b:"1,569", ans:"8,001"},
+  {a:"12,308", op:"-", b:"7,295", ans:"5,013"},
+  {a:"4,751", op:"+", b:"3,249", ans:"8,000"},
+  {a:"15,678", op:"-", b:"9,432", ans:"6,246"}
+];
+
+const feedback = document.getElementById("feedback");
+const box = document.getElementById("exerciseBox");
+const dropzone = document.getElementById("dropzone");
+const optionsDiv = document.getElementById("options");
+
+let index = 0;
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+function renderExercise() {
+  if (index >= exercises.length) {
+    box.innerHTML = "<h2>🎉 ¡Completaste todos los ejercicios!</h2>";
+    dropzone.style.display = "none";
+    optionsDiv.style.display = "none";
+    feedback.textContent = "";
+    return;
+  }
+  const ex = exercises[index];
+  box.innerHTML = `
+    <div class="operation">${ex.a}</div>
+    <div class="operation">${ex.op} ${ex.b}</div>
+    <div class="line"></div>
+  `;
+  dropzone.textContent = "Arrastra aquí la respuesta";
+  feedback.textContent = "";
+  
+  // Generar opciones: respuesta correcta + 4 distractores
+  let correct = ex.ans;
+  let options = [correct];
+  while (options.length < 5) {
+    let rand = (Math.floor(Math.random() * 20) + 1).toString();
+    if (!options.includes(rand)) options.push(rand);
+  }
+  options = shuffle(options);
+  
+  optionsDiv.innerHTML = "";
+  options.forEach(opt => {
+    const span = document.createElement("div");
+    span.textContent = opt;
+    span.classList.add("option");
+    span.draggable = true;
+    span.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", opt);
+    });
+    optionsDiv.appendChild(span);
+  });
+}
+
+dropzone.addEventListener("dragover", e => {
+  e.preventDefault();
+  dropzone.style.background = "#e6f7ff";
+});
+dropzone.addEventListener("dragleave", () => {
+  dropzone.style.background = "#fafafa";
+});
+dropzone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropzone.style.background = "#fafafa";
+  const data = e.dataTransfer.getData("text/plain");
+  const correct = exercises[index].ans;
+  if (data === correct) {
+    feedback.style.color = "green";
+    feedback.textContent = "¡Muy bien! 🎉";
+    setTimeout(() => {
+      index++;
+      renderExercise();
+    }, 1000);
+  } else {
+    feedback.style.color = "red";
+    feedback.textContent = "Intenta de nuevo ❌";
+    setTimeout(() => {
+      dropzone.textContent = "Arrastra aquí la respuesta";
+      feedback.textContent = "";
+    }, 1000);
+  }
+});
+
+renderExercise();
+</script>
+
+</body>
+</html>
